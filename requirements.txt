@@ -3,3 +3,5 @@ pandas
 fredapi
 plotly
 matplotlib
+yfinance
+kaleido

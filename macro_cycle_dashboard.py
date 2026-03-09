@@ -91,7 +91,6 @@ Base case is continued recovery with above-trend growth. Steep curve and easing 
 **Positioning**: Long Staples & Defense, Short broad equities on valuation concerns."""
     st.markdown(f"**DAILY MACRO INTELLIGENCE NOTE** — {latest_date}\n\n{note}")
 
-    # Score Breakdown Chart
     st.subheader("Score Breakdown")
     breakdown = {"Growth": 25, "Policy (Curve)": 20, "Labor": 15, "Financial Conditions": 12, "Inflation/Credit": 8}
     fig = go.Figure(go.Bar(x=list(breakdown.keys()), y=list(breakdown.values()), marker_color="#00cc66"))

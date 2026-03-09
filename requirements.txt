@@ -4,4 +4,3 @@ fredapi
 plotly
 matplotlib
 yfinance
-kaleido

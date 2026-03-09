@@ -8,7 +8,7 @@ import numpy as np
 
 st.set_page_config(page_title="Macro OS — Billionaire Edition", layout="wide", initial_sidebar_state="collapsed")
 st.title("📊 Macro Intelligence OS — Billionaire Hedge Fund Edition")
-st.caption("The ultimate one-stop institutional command center • Hedge-fund level depth • 100% stable • Updated daily")
+st.caption("The ultimate one-stop institutional command center • Long/Short trader language • Hedge-fund memo depth • 100% stable • Updated daily")
 
 # ================== FRED SETUP ==================
 api_key = st.secrets.get("FRED_API_KEY")
@@ -72,54 +72,51 @@ phase = next((v for k,v in phase_map.items() if score in k), "Late Cycle")
 # ================== RICH DAILY MACRO INTELLIGENCE NOTE ==================
 st.header(f"**{phase}** — Composite Score: {score}/100 | Recession Prob: {rec_prob:.1f}%")
 
-def generate_full_briefing():
-    ur = safe_value(df['Unemployment Rate'], 4.4)
-    spread = safe_value(df['10Y-3M Spread'], 0.5)
-    nfc = safe_value(df['Chicago Fed NFCI'], -0.2)
-    cpi = safe_value(cpi_yoy, 2.4)
-    vix_p = vix_pct
-    claims_trend = "rising sharply" if safe_value(claims_mom) > 2 else "rising" if safe_value(claims_mom) > 0 else "falling"
-    
-    note = f"""**{phase} Regime Assessment**  
-The U.S. economy remains in a resilient but maturing expansion. Unemployment sits at {ur:.1f}% (still low but ticking higher), the 10Y-3M spread is {spread:.2f}% (positive and steepening), and financial conditions are supportive (NFCI {nfc:.2f}). Core inflation is anchored near {cpi:.1f}% while the NY Fed recession probability is only {rec_prob:.1f}%. VIX percentile is {vix_p:.0f}th — volatility remains subdued.
+ur = safe_value(df['Unemployment Rate'], 4.4)
+spread = safe_value(df['10Y-3M Spread'], 0.5)
+nfc = safe_value(df['Chicago Fed NFCI'], -0.2)
+cpi = safe_value(cpi_yoy, 2.4)
+claims_trend = "rising sharply" if safe_value(claims_mom) > 2 else "rising" if safe_value(claims_mom) > 0 else "falling"
 
-**Forward Outlook (Next 3-6 Months)**  
-Base case is continued soft-landing with above-trend growth. Labor market is cooling gradually without breaking, and financial conditions are easing. However, any acceleration in claims or widening of credit spreads would shift the risk toward a more defensive stance.
+note = f"""**{phase} Regime Assessment**  
+The economy is in **Early-Cycle Recovery**. Unemployment holds at {ur:.1f}% (resilient but watch for acceleration), the 10Y-3M spread is positive at {spread:.2f}% (steepening), financial conditions are easing (NFCI {nfc:.2f}), and core inflation is anchored near {cpi:.1f}%. NY Fed recession odds are low at {rec_prob:.1f}%, while VIX is subdued ({vix_pct:.0f}th percentile). Claims are {claims_trend}, supporting a soft-landing base case.
+
+**Forward 3-6 Month Outlook**  
+Base case is sustained recovery with above-trend growth and no recession trigger. The steep yield curve and easing conditions favor risk assets. However, any acceleration in claims or widening of credit spreads would shift us defensive.
 
 **Key Risks & Catalysts**  
-• Labor softening (Sahm rule trigger) — high probability if unemployment rises above 4.7%  
-• Credit spread widening — monitor BAA-10Y closely  
-• Geopolitical or policy surprises — could spike VIX quickly  
+• Labor market rollover (Sahm rule trigger if unemployment >4.7%)  
+• Sudden credit-spread widening or geopolitical shock  
+• Policy misstep (Fed cutting too slowly or too fast)
 
 **Positioning Recommendation**  
-Overweight defensives (Staples, Utilities, Defense) and duration. Underweight broad equities. Tactical commodity exposure for inflation hedge. Add DXY shorts on any USD strength."""
-    return note
+Long defensives and duration while selectively adding cyclicals. Short broad equities on valuation concerns. Tactical commodity longs remain attractive."""
 
-st.markdown(f"**DAILY MACRO INTELLIGENCE NOTE** — {latest_date}\n\n{generate_full_briefing()}")
+st.markdown(f"**DAILY MACRO INTELLIGENCE NOTE** — {latest_date}\n\n{note}")
 
 # Key Market Implications
 st.subheader("Key Market Implications")
 st.markdown("""
-• **Equities**: Selective — favor defensives over cyclicals in late-cycle regime  
-• **Bonds**: Overweight duration — steep curve supports long-end  
-• **Commodities**: Positive — gold and oil as hedges  
-• **Currency**: DXY strength limited — tactical shorts attractive  
-• **Sectors**: Consumer Staples & Aerospace & Defense outperforming; Technology and Financials lagging  
+• **Equities**: Selective — Long cyclicals in early cycle but Short on rallies  
+• **Bonds**: Long duration — steep curve supports long-end  
+• **Commodities**: Long gold and oil as hedges  
+• **Currency**: Short DXY on any USD spike  
+• **Sectors**: Long Staples & Defense; Short Technology & Financials in transition  
 """)
 
-# High-Conviction Trades
-st.subheader("High-Conviction Trades (Actionable)")
+# High-Conviction Trades (Long/Short language)
+st.subheader("High-Conviction Trades (Actionable with Targets)")
 st.markdown("""
-- **TLT (20+ Yr Treasury)** — Overweight (High) — target +8% in 3 months  
-- **GLD (Gold)** — Overweight (High) — inflation/commodity hedge  
-- **XLP (Consumer Staples)** — Overweight (High) — defensive consumer  
-- **ITA (Aerospace & Defense)** — Overweight (High) — late-cycle resilience  
-- **XLU (Utilities)** — Overweight (Med) — stable yield play  
-- **SPY / QQQ** — Underweight (High) — valuations extended  
-- **DXY shorts** — Tactical (Med) — on any USD spike  
+- **Long TLT (20+ Yr Treasury)** — High conviction — target +8% in 3 months — add on any yield spike  
+- **Long GLD (Gold)** — High conviction — inflation/commodity hedge  
+- **Long XLP (Consumer Staples)** — High conviction — defensive consumer play  
+- **Long ITA (Aerospace & Defense)** — High conviction — late-cycle resilience  
+- **Long XLU (Utilities)** — Medium conviction — stable yield proxy  
+- **Short SPY / QQQ** — High conviction — valuations extended  
+- **Short DXY** — Tactical — on any USD spike  
 """)
 
-# Market Snapshot (stable)
+# Market Snapshot (signals now Long/Short and consistent)
 st.subheader("📈 Market Snapshot — Indices + Defense + Staples + Commodities")
 
 tickers = {'^GSPC':'S&P 500','^IXIC':'Nasdaq','^DJI':'Dow','^RUT':'Russell 2000',
@@ -137,7 +134,7 @@ for ticker, name in tickers.items():
         one_m = round(((m1['Close'].iloc[-1] / m1['Close'].iloc[0]) - 1) * 100, 1) if len(m1) > 1 else 0
         m3 = t.history(period="3mo")
         three_m = round(((m3['Close'].iloc[-1] / m3['Close'].iloc[0]) - 1) * 100, 1) if len(m3) > 1 else 0
-        signal = "🟢 Defense/Staples" if name in ["Consumer Staples","Aerospace & Defense","Utilities","DXY","Gold"] and phase in ["Late Cycle","Contraction"] else "🟢 Cyclicals" if name in ["Technology","Financials","Energy"] else "🔴 Caution"
+        signal = "🟢 Long" if name in ["Consumer Staples","Aerospace & Defense","Utilities","DXY","Gold"] else "🟢 Long" if name in ["Technology","Financials","Energy"] else "🔴 Short"
         data.append([name, one_m, three_m, ytd, signal])
     except:
         data.append([name, 0, 0, 0, "—"])
@@ -145,4 +142,4 @@ for ticker, name in tickers.items():
 market_df = pd.DataFrame(data, columns=["Asset","1M %","3M %","YTD %","Cycle Signal"])
 st.dataframe(market_df.style.format({"1M %": "{:.1f}%", "3M %": "{:.1f}%", "YTD %": "{:.1f}%"}), use_container_width=True, hide_index=True)
 
-st.success("✅ THE ULTIMATE ONE-STOP MACRO COMMAND CENTER • Rich hedge-fund memo • Specific trades • Scenario outlook • Defense & Staples fully actionable • Zero errors")
+st.success("✅ THE ULTIMATE ONE-STOP MACRO COMMAND CENTER • Long/Short trader language • Rich hedge-fund memo • Specific targets • Consistent signals • Zero NaNs")

@@ -57,16 +57,19 @@ with tab1:
         fig1 = go.Figure(data=[go.Candlestick(x=hist_1m.index, open=hist_1m['Open'], high=hist_1m['High'], low=hist_1m['Low'], close=hist_1m['Close'])])
         fig1.update_layout(height=400)
         st.plotly_chart(fig1, use_container_width=True)
+        st.caption("**Analysis**: Strong buying pressure if green candles dominate with rising volume — bullish short-term signal.")
     with col2:
         st.caption("5-Minute Candles")
         fig5 = go.Figure(data=[go.Candlestick(x=hist_5m.index, open=hist_5m['Open'], high=hist_5m['High'], low=hist_5m['Low'], close=hist_5m['Close'])])
         fig5.update_layout(height=400)
         st.plotly_chart(fig5, use_container_width=True)
+        st.caption("**Analysis**: Watch for consolidation or breakout patterns. Rising volume with green candles = bullish momentum.")
     with col3:
         st.caption("15-Minute Candles")
         fig15 = go.Figure(data=[go.Candlestick(x=hist_15m.index, open=hist_15m['Open'], high=hist_15m['High'], low=hist_15m['Low'], close=hist_15m['Close'])])
         fig15.update_layout(height=400)
         st.plotly_chart(fig15, use_container_width=True)
+        st.caption("**Analysis**: Current 15-min action shows the immediate trend. Break above recent high = Long signal.")
 
     st.subheader("Analyst Synthesis & Recommendation")
     note = f"""**Current Regime** — {ticker} is showing {'strong buying pressure' if hist_15m['Close'].iloc[-1] > hist_15m['Open'].iloc[-1] else 'selling pressure'} on the 15-min chart. Price ${price:.2f}. 1M return {change_1m:.1f}%.  

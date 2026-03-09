@@ -44,15 +44,13 @@ def fetch_data():
 
 df = fetch_data()
 
-# Safe calculations + NaN protection
+# Calculations + NaN protection
 cpi_yoy = df['CPI'].pct_change(12) * 100
 sahm = df['Unemployment Rate'].rolling(3).mean() - df['Unemployment Rate'].rolling(12).min()
 claims_mom = df['Initial Claims (k)'].rolling(4).mean().pct_change(4) * 100
 vix_pct = df['VIX'].rolling(252).rank(pct=True).iloc[-1] * 100 if len(df) > 252 else 50
 indpro_z = (df['Industrial Production'].iloc[-1] - df['Industrial Production'].mean()) / df['Industrial Production'].std() if len(df) > 50 else 0
 latest_date = df.index[-1].strftime('%b %d, %Y')
-
-# Safe recession probability
 rec_prob = df['NY Fed Recession Prob'].dropna().iloc[-1] if not df['NY Fed Recession Prob'].dropna().empty else 10.0
 
 # Z-scores & Percentiles
@@ -84,7 +82,7 @@ score = calculate_phase_score()
 phase_map = {range(0,40): "Early Cycle", range(40,65): "Mid Cycle", range(65,85): "Late Cycle", range(85,101): "Contraction"}
 phase = next((v for k,v in phase_map.items() if score in k), "Late Cycle")
 
-# ================== MACRO INTELLIGENCE BRIEFING (hedge-fund memo style) ==================
+# ================== MACRO INTELLIGENCE BRIEFING ==================
 def generate_briefing():
     nfc = df['Chicago Fed NFCI'][-1]
     claims_trend = "rising sharply" if claims_mom[-1] > 2 else "rising" if claims_mom[-1] > 0 else "falling"
@@ -107,10 +105,14 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs(["📍 Cycle Gauges", "📊 Heatmap & Z-S
 with tab1:
     st.subheader("Key Institutional Gauges")
     g1, g2, g3, g4 = st.columns(4)
-    with g1: st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=df['Chicago Fed NFCI'][-1], title={'text':"NFCI"}, gauge={'axis':{'range':[-1,1]}})), use_container_width=True)
-    with g2: st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=cpi_yoy[-1], title={'text':"CPI YoY"}, gauge={'axis':{'range':[0,6]}})), use_container_width=True)
-    with g3: st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=df['Initial Claims (k)'][-1], title={'text':"Wkly Claims"}, gauge={'axis':{'range':[150,400]}})), use_container_width=True)
-    with g4: st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=df['Corp Credit Spread'][-1], title={'text':"Corp Spread"}, gauge={'axis':{'range':[1,5]}})), use_container_width=True)
+    with g1:
+        st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=df['Chicago Fed NFCI'][-1], title={'text':"NFCI"}, gauge={'axis':{'range':[-1,1]}})), use_container_width=True)
+    with g2:
+        st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=cpi_yoy[-1], title={'text':"CPI YoY"}, gauge={'axis':{'range':[0,6]}})), use_container_width=True)
+    with g3:
+        st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=df['Initial Claims (k)'][-1], title={'text':"Wkly Claims"}, gauge={'axis':{'range':[150,400]}})), use_container_width=True)
+    with g4:
+        st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=df['Corp Credit Spread'][-1], title={'text':"Corp Spread"}, gauge={'axis':{'range':[1,5]}})), use_container_width=True)
 
 with tab2:
     st.subheader("Cycle Heatmap — Historical Percentiles & Z-Scores")
@@ -124,7 +126,40 @@ with tab2:
     heatmap_df = pd.DataFrame(data, columns=["Indicator","Latest","Hist. Percentile","Z-Score","Signal"])
     st.dataframe(heatmap_df.style.background_gradient(subset=['Hist. Percentile'], cmap='RdYlGn'), use_container_width=True, hide_index=True)
 
-with tab3, tab4, tab5:  # (same clean charts + playbook as before — full version is in your repo)
-    # ... (the rest of the tabs from the previous stable version — they are unchanged and work perfectly)
+with tab3:
+    st.subheader("Leading Indicators Charts")
+    fig = make_subplots(rows=2, cols=1)
+    fig.add_trace(go.Scatter(x=df.index, y=df['Chicago Fed NFCI'], name="NFCI"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=df['Industrial Production'], name="Ind Prod"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=df.index, y=df['Initial Claims (k)'], name="Claims"), row=2, col=1)
+    st.plotly_chart(fig, use_container_width=True)
+
+with tab4:
+    st.subheader("Risk & Probability Dashboard")
+    r1, r2, r3 = st.columns(3)
+    with r1:
+        st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=rec_prob, title={'text':"Recession Prob"}, gauge={'axis':{'range':[0,100]}})), use_container_width=True)
+    with r2:
+        st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=vix_pct, title={'text':"VIX Percentile"}, gauge={'axis':{'range':[0,100]}})), use_container_width=True)
+    with r3:
+        st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=df['Chicago Fed NFCI'][-1], title={'text':"Financial Conditions"}, gauge={'axis':{'range':[-1,1]}})), use_container_width=True)
+
+with tab5:
+    st.subheader("Hedge-Fund Regime Playbook")
+    if score >= 65:
+        alloc = ["Underweight", "Underweight", "Overweight", "Overweight", "Neutral", "Overweight"]
+        conv = ["High", "High", "Med", "High", "Low", "High"]
+        rationale = ["Valuations extended", "Defensives outperforming", "Curve steepening", "Inflation/commodity hedge", "Tight spreads", "Liquidity premium"]
+    else:
+        alloc = ["Overweight", "Overweight", "Neutral", "Neutral", "Overweight", "Underweight"]
+        conv = ["High", "Med", "High", "Low", "High", "Med"]
+        rationale = ["Early/mid beta", "Cyclicals leading", "Neutral duration", "Growth-sensitive", "Credit expansion", "Risk-on tilt"]
+    playbook = pd.DataFrame({
+        "Asset Class": ["US Equities", "Cyclicals", "Duration", "Commodities/Gold", "HY Credit", "Cash"],
+        "Position": alloc,
+        "Conviction": conv,
+        "Rationale": rationale
+    })
+    st.dataframe(playbook, use_container_width=True, hide_index=True)
 
 st.success("✅ Billionaire-grade macro OS • Beautiful gradient heatmap • Zero NaNs • Auto-updates daily")

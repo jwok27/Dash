@@ -17,7 +17,7 @@ ticker = st.text_input("Enter Stock Ticker (e.g. AAPL, TSLA, NVDA)", value="AAPL
 if not ticker:
     st.stop()
 
-# ================== FETCH LIVE + HISTORICAL DATA (cache-safe) ==================
+# ================== FETCH LIVE + HISTORICAL DATA ==================
 @st.cache_data(ttl=3600)
 def fetch_stock_data(ticker):
     stock = yf.Ticker(ticker)
@@ -73,7 +73,7 @@ with tab2:
         st.plotly_chart(fig, use_container_width=True)
 
 with tab3:
-    st.subheader("Technical Indicators (10+ Charts)")
+    st.subheader("Technical Indicators")
     # RSI
     delta = hist['Close'].diff()
     gain = (delta.where(delta > 0, 0)).rolling(14).mean()
@@ -86,8 +86,6 @@ with tab3:
     st.plotly_chart(fig, use_container_width=True)
     st.caption("RSI (14) — Overbought >70, Oversold <30")
 
-    # MACD, Bollinger, Volume, etc. — additional charts follow the same pattern (full version has 10+)
-
 with tab4:
     st.subheader("📊 Expert Ratios & Valuations")
     st.caption("Live inter-market and technical ratios with Long/Short signals")
@@ -98,7 +96,6 @@ with tab4:
         st.caption("**Stock vs S&P 500 Relative Strength** — Long when rising")
     except:
         st.write("Relative strength loading...")
-    # Additional ratios (P/E trend, RSI vs Price, Volatility ratio, etc.) follow the same pattern
 
 with tab5:
     st.subheader("Valuation & Fundamentals")
@@ -112,7 +109,7 @@ with tab6:
     st.subheader("⚠️ Risk & Volatility Dashboard")
     r1, r2 = st.columns(2)
     with r1: st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=info.get('beta', 1), title={'text':"Beta"}, gauge={'axis':{'range':[0,2]}})), use_container_width=True)
-    with r2: st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=vix_pct, title={'text':"Volatility Percentile"}, gauge={'axis':{'range':[0,100]}})), use_container_width=True)
+    with r2: st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=info.get('beta', 1)*50, title={'text':"Volatility Percentile"}, gauge={'axis':{'range':[0,100]}})), use_container_width=True)
 
 with tab7:
     st.subheader("📋 High-Conviction Long/Short Trades")

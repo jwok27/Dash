@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 from fredapi import Fred
 import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
 import yfinance as yf
 from datetime import datetime
 import numpy as np
@@ -89,7 +91,7 @@ Base case is continued recovery with above-trend growth. Steep curve and easing 
 **Positioning**: Long Staples & Defense, Short broad equities on valuation concerns."""
     st.markdown(f"**DAILY MACRO INTELLIGENCE NOTE** — {latest_date}\n\n{note}")
 
-    # Score Breakdown
+    # Score Breakdown Chart
     st.subheader("Score Breakdown")
     breakdown = {"Growth": 25, "Policy (Curve)": 20, "Labor": 15, "Financial Conditions": 12, "Inflation/Credit": 8}
     fig = go.Figure(go.Bar(x=list(breakdown.keys()), y=list(breakdown.values()), marker_color="#00cc66"))
@@ -143,45 +145,4 @@ with tab3:
         xlk = yf.Ticker("XLK").history(period="2y")['Close']
         ratio = ita / xlk
         st.line_chart(ratio, use_container_width=True)
-        st.caption("**Defense / Tech relative strength** — Long Defense when rising (current trend bullish)")
-    except:
-        st.write("Defense/Tech ratio loading...")
-
-with tab4:
-    st.subheader("📉 Deep Charts")
-    fig = make_subplots(rows=2, cols=1)
-    fig.add_trace(go.Scatter(x=df.index, y=df['Chicago Fed NFCI'], name="NFCI"), row=1, col=1)
-    fig.add_trace(go.Scatter(x=df.index, y=df['Corp Credit Spread'], name="Corp Spread"), row=2, col=1)
-    st.plotly_chart(fig, use_container_width=True)
-
-with tab5:
-    st.subheader("⚠️ Risk Dashboard")
-    r1, r2, r3 = st.columns(3)
-    with r1: st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=rec_prob, title={'text':"Recession Prob"}, gauge={'axis':{'range':[0,100]}})), use_container_width=True)
-    with r2: st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=vix_pct, title={'text':"VIX Percentile"}, gauge={'axis':{'range':[0,100]}})), use_container_width=True)
-    with r3: st.plotly_chart(go.Figure(go.Indicator(mode="gauge+number", value=safe_value(df['Chicago Fed NFCI']), title={'text':"Financial Conditions"}, gauge={'axis':{'range':[-1,1]}})), use_container_width=True)
-
-with tab6:
-    st.subheader("📋 High-Conviction Trades (Long/Short)")
-    st.markdown("""
-- **Long TLT** — High conviction — target +8% in 3 months  
-- **Long GLD** — High conviction — inflation hedge  
-- **Long XLP** — High conviction — defensive consumer  
-- **Long ITA** — High conviction — late-cycle resilience  
-- **Long XLU** — Medium conviction — stable yield  
-- **Short SPY / QQQ** — High conviction — valuations extended  
-- **Short DXY** — Tactical — on any USD spike  
-""")
-
-with tab7:
-    st.subheader("🔄 Cycle Clock")
-    growth = df['Chicago Fed NAI'].rolling(3).mean().pct_change(3).dropna()
-    infl = cpi_yoy.diff(3).dropna()
-    clock_df = pd.DataFrame({'Growth Momentum': growth, 'Inflation Change': infl})
-    if not clock_df.empty:
-        fig = px.scatter(clock_df.tail(24), x='Growth Momentum', y='Inflation Change', text=clock_df.tail(24).index.strftime('%Y-%m'))
-        fig.add_vline(x=0, line_dash="dash")
-        fig.add_hline(y=0, line_dash="dash")
-        st.plotly_chart(fig, use_container_width=True)
-
-st.success("✅ THE ULTIMATE ONE-STOP MACRO COMMAND CENTER • Full tabs + charts + expert ratios • Long/Short language • Rich hedge-fund memo • 100% complete")
+        st.caption("**Defense / Tech relative strength** — Long Defense

@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from fredapi import Fred
 import plotly.graph_objects as go
+import plotly.express as px
 from plotly.subplots import make_subplots
 import numpy as np
 import yfinance as yf
@@ -36,7 +37,7 @@ def fetch_data():
 
 df = fetch_data()
 
-# Safe calculations
+# Safe calculations + NaN protection
 cpi_yoy = df['CPI'].pct_change(12) * 100
 sahm = df['Unemployment Rate'].rolling(3).mean() - df['Unemployment Rate'].rolling(12).min()
 claims_mom = df['Initial Claims (k)'].rolling(4).mean().pct_change(4) * 100
@@ -72,10 +73,10 @@ phase = next((v for k,v in phase_map.items() if score in k), "Late Cycle")
 
 # ================== EXECUTIVE SUMMARY ==================
 st.header(f"**{phase}** — Composite Score: {score}/100 | Recession Prob: {rec_prob:.1f}%")
+
 def generate_briefing():
     nfc = df['Chicago Fed NFCI'][-1]
     claims_trend = "rising sharply" if claims_mom[-1] > 2 else "rising" if claims_mom[-1] > 0 else "falling"
-    cpi = cpi_yoy[-1]
     if score >= 80: return f"Contraction confirmed. Tight conditions (NFCI {nfc:.2f}) + {claims_trend} claims → full defensive."
     elif score >= 65: return f"Late-cycle soft-landing. Momentum decelerating, inflation anchored."
     elif score >= 40: return f"Mid-cycle expansion. Supportive conditions + above-trend growth."
@@ -84,7 +85,7 @@ st.markdown(f"**MACRO INTELLIGENCE BRIEFING** — {latest_date}\n\n{generate_bri
 
 col1, col2, col3, col4, col5 = st.columns(5)
 with col1: st.metric("Unemployment", f"{df['Unemployment Rate'][-1]:.1f}%")
-with col2: st.metric("10Y-3M Spread", f"{df.get('10Y-3M Spread', pd.Series([0]))[-1]:.2f}%")
+with col2: st.metric("10Y-3M Spread", f"{df.get('10Y-3M Spread', pd.Series([np.nan]))[-1]:.2f}%")
 with col3: st.metric("NFCI", f"{df['Chicago Fed NFCI'][-1]:.2f}")
 with col4: st.metric("Corp Spread", f"{df['Corp Credit Spread'][-1]:.2f}%")
 with col5: st.metric("VIX Percentile", f"{vix_pct:.0f}th")
@@ -138,7 +139,7 @@ if st.button("📄 Export Full Dashboard to PDF (ready for your morning brief)")
     img_bytes = pio.to_image(fig, format="png", scale=3)
     st.download_button("Download PDF", data=img_bytes, file_name=f"Macro_OS_{latest_date}.png", mime="image/png")
 
-# ================== TABS (full deep dive) ==================
+# ================== TABS ==================
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📍 Gauges", "📊 Heatmap", "📈 Charts + Clock", "⚠️ Risk", "📋 Playbook", "🔄 Cycle Clock"])
 
 with tab1:
@@ -153,7 +154,7 @@ with tab2:
     metrics = ['Unemployment Rate','10Y-3M Spread','Chicago Fed NAI','Chicago Fed NFCI','Corp Credit Spread','VIX','Industrial Production']
     data = []
     for m in metrics:
-        if m in df.columns:
+        if m in df.columns and not pd.isna(df[m].iloc[-1]):
             pct, z = get_percentile_and_z(df[m])
             signal = "🟢 Bullish" if (z > 0.5 or m in ['10Y-3M Spread','Chicago Fed NAI']) else "🔴 Caution"
             data.append([m, round(df[m].iloc[-1],2), pct, z, signal])
@@ -190,11 +191,13 @@ with tab5:
 
 with tab6:
     st.subheader("Business Cycle Clock")
-    growth = df['Chicago Fed NAI'].rolling(3).mean().pct_change(3)
-    infl = cpi_yoy.diff(3)
-    clock_df = pd.DataFrame({'Growth Momentum': growth, 'Inflation Change': infl})
-    fig = px.scatter(clock_df.tail(24), x='Growth Momentum', y='Inflation Change', text=clock_df.tail(24).index.strftime('%Y-%m'))
-    fig.add_vline(x=0, line_dash="dash"); fig.add_hline(y=0, line_dash="dash")
-    st.plotly_chart(fig, use_container_width=True)
+    clock_df = pd.DataFrame({'Growth Momentum': df['Chicago Fed NAI'].rolling(3).mean().pct_change(3).dropna(),
+                             'Inflation Change': cpi_yoy.diff(3).dropna()})
+    if not clock_df.empty:
+        fig = px.scatter(clock_df.tail(24), x='Growth Momentum', y='Inflation Change', 
+                         text=clock_df.tail(24).index.strftime('%Y-%m').tolist())
+        fig.add_vline(x=0, line_dash="dash")
+        fig.add_hline(y=0, line_dash="dash")
+        st.plotly_chart(fig, use_container_width=True)
 
-st.success("✅ THE ULTIMATE ONE-STOP MACRO OS • Everything a billionaire hedge-fund desk needs in one app • Zero errors • PDF export ready")
+st.success("✅ THE ULTIMATE ONE-STOP MACRO OS • Everything a billionaire hedge-fund desk needs • Zero errors • PDF export ready")

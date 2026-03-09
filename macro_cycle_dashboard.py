@@ -137,12 +137,4 @@ with tab3:
         tnx = yf.Ticker("^TNX").history(period="2y")['Close']
         ratio = dxy / tnx
         st.line_chart(ratio, use_container_width=True)
-        st.caption("**DXY / 10Y Yield ratio** — Short DXY when falling (current trend neutral)")
-    except:
-        st.write("DXY/10Y ratio loading...")
-    try:
-        ita = yf.Ticker("ITA").history(period="2y")['Close']
-        xlk = yf.Ticker("XLK").history(period="2y")['Close']
-        ratio = ita / xlk
-        st.line_chart(ratio, use_container_width=True)
-        st.caption("**Defense / Tech relative strength** — Long Defense
+        st
